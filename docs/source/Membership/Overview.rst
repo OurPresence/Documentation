@@ -1,7 +1,7 @@
 Overview
 ========
 
-This module defines the ability for an organisation to manage paying people and the financial aspects of managging the membership.
+This module defines the ability for an organisation to manage paying people and the financial aspects of managing the membership.
 
 Memberships can have various types that define different periods and responsibilities.  These include but not limited to:
 

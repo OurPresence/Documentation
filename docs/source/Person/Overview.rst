@@ -3,7 +3,7 @@ Overview
 
 A person is an individual with identifying information, e.g. First Name, Surname, Address, etc.
 
-A person is someone identifyable in the organisation (Tenant), not necessarily a member. e.g. A club is the organisation, and the club secretory is a person in the club, but not a member (necessarily).
+A person is someone identifiable in the organisation (Tenant), not necessarily a member. e.g. A club is the organisation, and the club secretory is a person in the club, but not a member (necessarily).
 
 +---------------------------+-------------------------------------------------------+
 |Known Types                |Description                                            |
