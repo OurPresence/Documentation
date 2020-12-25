@@ -4,14 +4,13 @@
    contain the root `toctree` directive.
 
 Our Presence documentation
-====================================
+==========================
 
 .. toctree::
    :maxdepth: 2
    :caption: Core
    
    /Core/SoftDeleteService
-   /Core/SoftDeletingData
 
 .. toctree::
    :maxdepth: 2
