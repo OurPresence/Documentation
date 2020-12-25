@@ -1,19 +1,24 @@
-EF Core In depth – Soft deleting data with Global Query Filters
-===============================================================
+Soft deleting data with Global Query Filters
+============================================
+
+.. image:: \_static\SoftDeleteHeader.png
+   :alt: Soft Delete
 
 Summary
 -------
 
-* You can add a soft delete feature to your EF Core application using Global Query Filters (referred to as Query Filters from now on).
-* The main benefits of using soft delete in your application are inadvertent deletes can be restored and history is preserved.
-* There are three parts to adding the soft delete feature to your application
-* Add a new soft delete property to every entity class you want to soft delete.
-* Configure the Query Filters in your application’s DbContext
-* You create code to set and reset the soft delete property.
-* You can combine soft delete with other uses of Query Filters, like multi-tenant uses but you need to be more careful when you are looking for soft deleted entries.
-* Don’t soft delete a one-to-one entity class as it can cause problems.
-* For entity classes that has relationships you need to consider what should happen to the dependant relationships when the top entity class is soft deleted.
-* I introduce a way to implement a cascade soft delete that works for entities where you need its dependant relationships soft deleted too.
+.. list-table::
+
+    * - You can add a soft delete feature to your EF Core application using Global Query Filters (referred to as Query Filters from now on).
+    * - The main benefits of using soft delete in your application are inadvertent deletes can be restored and history is preserved.
+    * - There are three parts to adding the soft delete feature to your application
+      - Add a new soft delete property to every entity class you want to soft delete.
+      - Configure the Query Filters in your application’s DbContext
+      - You create code to set and reset the soft delete property.
+    * - You can combine soft delete with other uses of Query Filters, like multi-tenant uses but you need to be more careful when you are looking for soft deleted entries.
+    * - Don’t soft delete a one-to-one entity class as it can cause problems.
+    * - For entity classes that has relationships you need to consider what should happen to the dependant relationships when the top entity class is soft deleted.
+    * - I introduce a way to implement a cascade soft delete that works for entities where you need its dependant relationships soft deleted too.
 
 Setting the scene – why soft delete is such a good idea
 -------------------------------------------------------
@@ -88,6 +93,7 @@ That’s fine but let me show you a way to automate adding query filters. This u
 
 The modelBuilder.Model.GetEntityTypes() feature available in the OnModelCreating method
 A little bit of generic magic to create the correct query filter
+
 Here are two part:
 
 1. Automating the configuring of the soft delete query filters
