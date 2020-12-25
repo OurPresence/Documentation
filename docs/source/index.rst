@@ -11,7 +11,7 @@ Our Presence documentation
    :caption: Core
    
    /Core/SoftDeleteService
-   
+   /Core/SoftDeletingData
 
 .. toctree::
    :maxdepth: 2
@@ -38,7 +38,7 @@ Our Presence documentation
    :maxdepth: 2
    :caption: Test Support
 
-   /
+   /TestSupport/SqlLiteInMemory
 
 Indices and tables
 ==================
