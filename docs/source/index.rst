@@ -8,6 +8,13 @@ Our Presence documentation
 
 .. toctree::
    :maxdepth: 2
+   :caption: Core
+   
+   /Core/SoftDeleteService
+   
+
+.. toctree::
+   :maxdepth: 2
    :caption: Tenant
    
    /Tenant/Overview
@@ -20,13 +27,18 @@ Our Presence documentation
    /Person/Overview
    /Person/Design
 
-
 .. toctree::
    :maxdepth: 2
    :caption: Membership
 
    /Membership/Overview
    /Membership/Design
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Test Support
+
+   /
 
 Indices and tables
 ==================
