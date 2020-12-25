@@ -38,7 +38,7 @@ Terms
 Soft deleting data with Global Query Filters
 ============================================
 
-.. image:: _static/SoftDeleteHeader.png
+.. image:: ../_static/SoftDeleteHeader.png
    :alt: Soft Delete
 
 Summary
@@ -429,7 +429,7 @@ What we need to do is have a soft delete level, where the level tells you how fa
 this we can work out whether we should reset the soft delete or not. This gets pretty complex, so I have a figure that shows how 
 this works. Light coloured rectangle represent entities that are soft deleted, with the change from the last step shown in red.
 
-.. image:: _static/CascadeDeleteExample-1019x1024.png
+.. image:: ../_static/CascadeDeleteExample-1019x1024.png
 
 So, you can handle cascade soft deletes/resets and it works really well. There are lots of little rules you cover in the code, 
 like you can’t start a reset of an entity if its SoftDeleteLevel isn’t 1, because a higher-level entity soft deleted it, and I 
