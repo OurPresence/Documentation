@@ -11,8 +11,8 @@ There are two services:
 * **Cascade soft delete**: where when an entity is soft deleted, then its dependent entity classes are also soft deleted. 
   The cascade soft delete is pretty clever, and can handle multi-level soft deletes 
 
-General information on how the simple and cascade methods work
---------------------------------------------------------------
+General information
+-------------------
 
 There four basic things your can do with both the single and cascade libraries 
 
@@ -25,7 +25,7 @@ I lot of things are configurable in the `SoftDeleteConfiguration` class. Its des
 and interfaces. See the `OurPresence.Core.SoftDelete.Tests` project for examples of how to use it. 
 
 Terms
------
+^^^^^
 
 * **Hard delete** is when you delete a row in the database, via the EF Core `Remove` method. A hard delete removes the row from 
   the database and may effect other entities/rows.
@@ -35,14 +35,14 @@ Terms
   EF Core `DeleteBehavior` has an effect on what happens).
 * **Soft delete** covers both Single soft delete and Cascade soft delete
 
-Soft deleting data with Global Query Filters
-============================================
+Global Query Filters
+--------------------
 
 .. image:: ../_static/SoftDeleteHeader.png
    :alt: Soft Delete
 
 Summary
--------
+^^^^^^^
 
 * You can add a soft delete feature to your EF Core application using Global Query Filters (referred to as Query Filters from now on).
 * The main benefits of using soft delete in your application are inadvertent deletes can be restored and history is preserved.
@@ -55,8 +55,8 @@ Summary
 * For entity classes that has relationships you need to consider what should happen to the dependant relationships when the top entity class is soft deleted.
 * I introduce a way to implement a cascade soft delete that works for entities where you need its dependant relationships soft deleted too.
 
-Setting the scene – why soft delete is such a good idea
--------------------------------------------------------
+Why soft delete is such a good idea
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When you hard delete (I use the term hard delete from now on, so its obvious what sort of delete I’m talking about), then it gone from your database. 
 Also, hard deleting might also hard delete rows that rely on the row you just hard deleted (known as dependant relationships). 
@@ -83,8 +83,8 @@ an entity class then its dependant relationships are NOT soft deleted, whereas a
 relationships. This means if I soft delete a Book entity class then the Book’s Reviews will still be visible, which might be a problem in some cases. 
 At the end of this article I show you how to handle that and talk about a prototype library that can do cascade soft deletes.
 
-Adding soft delete to your EF Core application
-==============================================
+Adding soft delete
+------------------
 
 In this section I’m going to go through each for the steps to add soft delete to your application
 
@@ -96,7 +96,7 @@ In the next sections I describe these stages in detail. I assume a typical EF Co
 other entity class styles, like Domain-Driven Design (DDD) styled entity classes.
 
 1. Adding soft delete property to your entity classes
------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For the standard soft delete implementation, you need a boolean flag to control soft delete. For instance, here is a Book entity with a
 SoftDeleted property highlighted.
@@ -118,7 +118,7 @@ You other thing I added was an ISoftDelete interface to the Book class (line 1).
 property which can be read and written to. This interface is going to make it much easier to configure the delete query filters in your DbContext.
 
 2. Configuring the soft delete query filters in your DbContext
---------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You must tell EF Core which entity classes needs a query filter and provide a query which will be true if you want it to be seen. You can do this 
 manually using the following code in your DbContext – see highlighted line in the following listing.
@@ -149,7 +149,7 @@ That’s fine but let me show you a way to automate adding query filters. This u
 Here are two part:
 
 1. Automating the configuring of the soft delete query filters
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The `OnModelCreating` method in your DbContext is where you can configure EF Core via what are known as Fluent API 
 configuration commands – you saw that in the last listing. But there is also a way you can look at each entity class 
@@ -176,7 +176,7 @@ to configure a query filter with the correct soft delete filter.
     }
 
 2. Creating the AddSoftDeleteQueryFilter extension method
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are many configurations you can apply directly to the type that the GetEntityTypes method returns but setting up 
 the Query Filter needs a bit more work. That’s because LINQ query in the Query Filter needs the type of the entity class 
@@ -207,7 +207,7 @@ LINQ expression to configure the Query Filter.
 I really like this because it a) saves me time, and b) can’t forget to configure a query filter.
 
 3. How to set/reset Soft Delete
--------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Setting the SoftDeleted property to true is easy – the user picks an entry and clicks “Soft Delete”, 
 which send back the entities primary key. Then your code to implement that is.
@@ -241,7 +241,7 @@ To load this entry you need include the IgnoreQueryFilters method in your query 
     context.SaveChanges();
 
 Things to be aware of if you use Soft delete
---------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 First, I should say that Query Filters are very secure, by that I mean if the query filter returns false then that specific 
 entity/row won’t be returned in a query, a Find, an Include of a relationship etc. You can get around it by using direct SQL, 
@@ -250,7 +250,7 @@ but other than that EF Core is going to hide things that you soft delete.
 But there are a couple of things you do need to be aware of.
 
 Watch out for mixing soft delete with other Query Filter usages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Query Filters are great for soft delete, but Query Filters are even better for controlling access to groups of data. For 
 instance, say you wanted to build a web application that to provide a service, like payroll, to lots of companies. In that 
@@ -284,7 +284,7 @@ This ignores all the filters and then add back the multi-tenant part of the filt
 handle showing/resetting soft deleted entities
 
 Don’t soft delete a one-to-one relationship
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The problem if you soft delete a one-to-one relationship and try to add a replacement one-to-one entity, then it fails. 
 That’s because a one-to-one relationship has a unique foreign key and that is already set by the soft deleted entity so, 
@@ -295,7 +295,7 @@ one-to-one relationship, then I suggest turn it into a one-to-many relationship 
 has a soft delete turned off, which I cover in the next problem area.
 
 Handling multiple versions where some are soft deleted
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 There are business cases where you might create an entity, then soft delete it, and then create a new version. For example, 
 say you were creating invoice for order 1234, then you are told the order has been stopped, so you soft delete it (that way 
@@ -326,14 +326,14 @@ You have a few ways to handle this:
    exception into a user-friendly error string.
 
 What about relationships?
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Up to now we have been looking at soft deleting/resetting a single entity, but EF Core is all about relationships. So, what should 
 I do about any relationships linked to the entity class that you just soft deleted? To help us, lets look at two different 
 relationships that have different business needs.
 
 Relationship example 1 – A Book with its Reviews
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Imagine a super-simple book selling web site with books, author, and reviews. In that web site, you can soft delete a Book. It 
 turns out that once you delete the Book then there really isn’t another way to get to the Reviews. So, in this case we don’t 
@@ -349,7 +349,7 @@ This gave the same count irrespective of whether the Book is soft deleted, which
 the Book (because that would also delete the book’s Review). I cover how to get around this problem later.
 
 Relationship example 2 – A Company with its Quotes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this example we have many companies that we sell to and each Company has set of Quotes we sent to that company. 
 This is the same one-to-many relationship that the Book/Reviews has, but in this case, we have a list of companies 
@@ -359,13 +359,13 @@ should be soft deleted too.
 I have come up with three useful solutions to both soft delete relationships examples I have just described.
 
 Solution 1 – do nothing because it doesn’t matter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Sometimes it doesn’t matter that you soft deleted something, and its relationships are still available. Until I 
 added the background task that counts Reviews my application worked fine if I soft deleted a book.
 
 Solution 2 – Use the Aggregates/Root approach
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The solution to the background task Reviews count I used was to apply a Domain-Driven Design (DDD) approach called 
 Aggregate. This says a that you get grouping of entities that work together, in this case the Book, Review, and the 
@@ -385,7 +385,7 @@ You could also do a version of the review count query to list the Quotes via the
 the way that database handles cascade deletes.
 
 Solution 3 – mimicking the way that cascade deletes works
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Databases have a delete setting called `CASCADE`, and EF Core has two DeleteBehaviours, `Cascade` and `ClientCascade`. These 
 behaviours causes the hard delete of a row to also hard delete any rows that rely on that row. For instance, in the book-selling 
@@ -439,7 +439,7 @@ I think this cascade soft delete approach is useful and I have built some protot
 quite a bit more work to turn it into a NuGet library that can work with any system.
 
 Conclusion
-==========
+----------
 
 Well we have well and truly looked at soft delete and what it can (and cannot) do. The main benefits are inadvertent deletes 
 can be restored and history is preserved. The main downside is the soft delete filter might slow queries down but adding an 
