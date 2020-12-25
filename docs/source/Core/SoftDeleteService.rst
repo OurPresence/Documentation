@@ -1,5 +1,5 @@
-SoftDeleteServices
-==================
+Soft Delete Services
+====================
 
 This contains code to handle soft delete in a generic way. The code handles all the setting, resetting and finding of soft deleted entities. 
 This code also incorporates other Query filters, such as multi-tenant keys, to make sure you only soft delete/reset entities that 
