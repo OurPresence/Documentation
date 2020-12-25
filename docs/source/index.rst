@@ -10,6 +10,7 @@ Our Presence documentation
    :maxdepth: 2
    :caption: Core
    
+   /Core/EFCore
    /Core/SoftDeleteService
 
 .. toctree::
