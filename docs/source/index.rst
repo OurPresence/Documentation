@@ -12,6 +12,7 @@ Our Presence documentation
    
    /Core/EFCore
    /Core/SoftDeleteService
+   /Core/EventDriven
 
 .. toctree::
    :maxdepth: 2
