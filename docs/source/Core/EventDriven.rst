@@ -140,6 +140,7 @@ the ``.AsNoTracking`` in it. This is because the event runner only looks for eve
 
 You can send an event from anywhere, but the typical approach is to trigger an event when something changes. One way is 
 to catch the setting of a property by using a backing field and testing if something changes in the property setter. 
+
 Here is an example:
 
 .. code-block:: csharp
@@ -161,7 +162,7 @@ The things to note are:
 * Line 1: I’m using a private field so that I can add my own code in the property setter. Converting a normal property 
   to this form is handled by EF Core via a backing field and the name of the column in the table is unchanged. 
 
-.. NOTE: In EF Core 3 and above when EF Core loads data it puts it in the private field, not via the setter – that’s 
+.. NOTE:: In EF Core 3 and above when EF Core loads data it puts it in the private field, not via the setter – that’s 
    good otherwise the load could cause an event (before EF Core 3 the default was to set via the property, which 
    would have generated an event).
 
