@@ -11,10 +11,7 @@ situations, requires significant thought and code.
 I came across a simple, but useful application of events to trigger code that accesses the database via EF Core. While 
 this is a very small subset of the whole event-driven space I think it is very useful, especially as it is inherently 
 robust. In fact, I like the approach so much I have built a library called OurPresence.Core.GenericEventRunner so I can 
-easily add this feature to any projects I work on, and that’s described here:
-
-* A robust event-driven architecture for using with Entity Framework Core 
-* OurPresence.Core.GenericEventRunner: an event-driven library that works with EF Core
+easily add this feature to any projects I work on.
 
 Summary
 -------
@@ -22,45 +19,43 @@ Summary
 * This is about a specific event-driven design that works with EF Core. It is limited in what it does -mainly 
   database updates, but it does that in a robust way.
 * The advantages for this design are:
-   * Using is event-driven design helps you to apply an Separation of Concerns in your application.
+   * Using is event-driven design helps you to apply Separation of Concerns in your application.
    * The design is robust by design. It saves the original data that caused the events with the data updated by the event handler together in one transaction.
    * The event-driven design helps apply a Domain-Driven Design to your code.
 * The disadvantages for this design are:
   * More difficult to follow the application flow
-  * Adds (some) complexity to your application.
+  * Adds some complexity to your application.
 * The rest of the article gives examples of how the event-driven design works with EF Core.
 
-why is this EF Core event system useful?
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Why is this event system useful?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-While working for a client I came across an event-driven design that had initially come from a `Jimmy Bogard article`_, but the 
-client had extended it. There were some issues which I needed to help them fix, but I could see how useful it was. Let me explain 
-what I liked (and disliked) about this approach.
+I came across an event-driven design from a `Jimmy Bogard article`_, let me explain what I liked and disliked about this approach.
 
 .. _`Jimmy Bogard article`: https://lostechies.com/jimmybogard/2014/05/13/a-better-domain-events-pattern/
 
-First benefit: Separation of concerns.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+First benefit: Separation of concerns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this sample the tax they need to charge. So, when you set, or change, the location you have to recalculate the tax for this job, 
-or any job linked to that location. But for me changing the location’s address is a very different to a recalculation of the job’s tax.
+When you set, or change, the location you have to recalculate the tax for this job, or any job linked to that 
+location. But for me changing the location’s address is a very different to a recalculation of the job’s tax.
 
-From a design point of view the changing the location, which can be done by a simple update to the State and County properties, 
+From a design point of view changing the location, which can be done by a simple update to the State and Country properties, 
 doesn’t naturally fit with recalculating the tax on an invoice. And the same location might be used in multiple invoices, 
-which makes the simple setting of State and County into a much more complex piece of business logic.
+which makes the simple setting of State and Country into a much more complex piece of business logic.
 
-Their solution is to kick off a “location State/County” event any time a location’s State/County properties change, or a 
+The solution is to kick off a “location State Country” event any time a location’s State Country properties change, or a 
 “*job location change*” event if a different location is selected for a job. It is then down to the event handlers for these 
-two events to recalculation of the tax for that job, or jobs. See the two different use cases below, with the events in red, 
+two events to recalculate the tax for that job, or jobs. See the two different use cases below, with the events in red, 
 the event handler in orange, and classes mapped to the database in blue.
 
-.. image: ../_static/GenericEventRunnerBasicSteps-1024x465.png
+.. image:: ../_static/GenericEventRunnerBasicSteps-1024x465.png
 
-So, in effect we have separated the “set/change location” logic from the “calculation of the tax” logic. That might seem 
-small, but to me with my design hat on that is very good “separation of concerns”. And with my developer hat on it makes 
-the setting of the location really simple, leaving the complex tax calculation to be run separately.
+So, in effect we have separated the “change location” logic from the “calculation of the tax” logic. That might seem 
+small, but to me with my design hat on that is very good “*separation of concerns*”. And with my developer 
+hat on it makes the setting of the location really simple, leaving the complex tax calculation to be run separately.
 
-In fact, the client has loads of these linked business rules which benefit from using events like this.
+An application can have loads of these linked business rules which benefit from using events like this.
 
 Second benefit: Its robust by design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -70,68 +65,70 @@ that can handles error situations, concurrency issues, and database connection f
 always looking for designs that handle these errors by design, and this event approach does that for everything but some 
 concurrency issues.
 
-As you will see later in this article the data that triggered an event (in the last example the location), and any data 
-that changed (in the last example the TaxRate) are saved together in one transaction by calling to EF Core’s SaveChanges 
-method. That is important because either all the data is saved, or no data is saved. That means the original data and the 
+As you will see later, the data that triggered an event, as in the last example, the location, and any data 
+that changed like the TaxRate, are saved together in one transaction by calling to EF Core’s SaveChanges method. 
+That is important because either all the data is saved, or no data is saved. That means the original data and the 
 data from the events will never get out of step.
 
-And if you do have an exception on SaveChanges, such as a DbUpdateConcurrencyException, all the data is now in the DbContext 
-and the events have been cleared. This means you can “fix” the problem and safely call SaveChanges again and it will save the 
+And if you do have an exception on SaveChanges, such as a ``DbUpdateConcurrencyException``, all the data is now in the DbContext 
+and the events have been cleared. This means you can “*fix*” the problem and safely call `SaveChanges` again and it will save the 
 original data and event-generated data to the database, with no extra event calls.
 
 Third benefit: This event-driven design fits with Domain-Driven Design
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Domain-Driven Design (DDD) is, to quote the http://dddcommunity.org site, “*is an approach to developing software for complex needs 
-by deeply connecting the implementation to an evolving model of the core business concepts.*”. I for one try to use a DDD 
-approach in anything I do.
+**Domain-Driven Design** or DDD is, to quote the http://dddcommunity.org site, “*is an approach to developing software 
+for complex needs by deeply connecting the implementation to an evolving model of the core business concepts.*”. 
+I for one try to use a DDD approach in anything I do.
 
-Some DDD users advocate that the code inside the entity class should not know anything about the database (I’m not in that 
-camp, but I respect their views). That means you need to do all the database work before you go to the entity class. But 
+Some DDD users advocate that the code inside the entity class should not know anything about the database, I’m not in that 
+camp, but I respect their views. That means you need to do all the database work before you go to the entity class. But 
 the event-driven design I am describing gives you another option – you can send an event to a handler that can access the 
 database for the class.
 
 Taking the example of the location effecting the tax, then using an event-driven approach allows the class to ask an external 
-service to calculate the tax (which in this case needs to access the database). I think that keeps the separation of database 
-from entity class while handling the business rule in an efficient and fast way.
+service to calculate the tax, which in this case needs to access the database. I think that keeps the separation of database 
+from the entity class, while handling the business rule in an efficient and fast way.
 
 Downsides of using the event-driven design.
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-It’s important to think about the downside of this event-driven design as well, as no extra feature comes with a price.
+It’s important to think about the downside of this event-driven design as well, as no extra feature comes without a price.
 
-First downside: using events can make it difficult to under the code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+First downside: Using events can make it difficult to follow the code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The first problem is described by Martin Fowler in an excellent article called What do you mean by “Event-Driven”?. He 
+The first problem is described by Martin Fowler in an excellent article called `What do you mean by “Event-Driven”`_?. He 
 says “*The problem is that it can be hard to see such a flow as it’s not explicit in any program text.*”
 
-For instance, there is an example above there were two types of events (“location State/County” and “job location change”), 
-but what do those events call? You can’t use the VS/VSCode “Go to Definition” (F12) feature to go to the handler code because 
+.. _`What do you mean by “Event-Driven”`: https://martinfowler.com/articles/201701-event-driven.html
+
+For instance, there is an example above where the two types of events “*location State Country*” and “*job location change*”), 
+but what do those events call? You can’t use the VS/VSCode ``Go to Definition`` **F12** feature to go to the handler code because 
 its hidden behind layers of interfaces and DI. That can make things hard to follow.
 
 My advice is, if you have business code where all the business rules sensibly belongs together then write one set of code, 
 and don’t use events. Only use events where it makes sense, like decoupling the setting of the location from the recalculation 
-of the tax rate. I also suggest you name of the event and the handler starts with the same name, e.g. LocationChangeEvent and 
-LocationChangeHandler respectively. That makes it easier to work out what code is called.
+of the tax rate. I also suggest you name of the event and the handler to start with the same name, e.g. ``LocationChangeEvent`` and 
+``LocationChangeHandler`` respectively. That makes it easier to work out what code is called.
 
-Second downside: makes your application more complicated
+Second downside: Makes your application more complicated
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Adding event handling to an application isn’t simple and it changes your DbContext, especially around the SaveChanges/SaveChangesAsync. 
-Complexity is bad, as it makes the application harder to understand and test. You have to weight up the usefulness of the event-driven 
+Complexity is bad, as it makes the application harder to understand and test. You have to weigh up the usefulness of the event-driven 
 design against the extra complexity it adds to your application.
-
-.. NOTE: In the next article I describe my OurPresence.Core.GenericEventRunner library which provides you with a pre-build event-driven 
-   system. You can read that article and see if you think it is useful.
 
 Implementing this in EF Core
 ----------------------------
 
-I have spent a lot of time on the pros and cons of the approach so now we look at how it works. I start with a diagram which shows 
+Details
+^^^^^^^
+
+I have described the pros and cons of the approach, so now we look at how it works. I start with a diagram which shows 
 the three stages of the event handling.
 
-.. image: ../_static/GenericEventRunnerLocationTax-1024x874.png
+.. image:: ../_static/GenericEventRunnerLocationTax-1024x874.png
 
 This example gives a good idea of what is possible and the next three sections show the code you need at each stage.  
 
@@ -147,15 +144,15 @@ Here is an example:
 
 .. code-block:: csharp
 
-    private string _county;
-    public decimal County
+    private string _country;
+    public decimal Country
     {
-        get => _county;
+        get => _country;
         private set
         {
-            if (value != _county)
+            if (value != _country)
                 AddEvent(new LocationChangeEvent(value));
-            _county = value;
+            _country = value;
         }
     }
 
@@ -163,6 +160,7 @@ The things to note are:
 
 * Line 1: I’m using a private field so that I can add my own code in the property setter. Converting a normal property 
   to this form is handled by EF Core via a backing field and the name of the column in the table is unchanged. 
+
 .. NOTE: In EF Core 3 and above when EF Core loads data it puts it in the private field, not via the setter – that’s 
    good otherwise the load could cause an event (before EF Core 3 the default was to set via the property, which 
    would have generated an event).
@@ -295,8 +293,8 @@ approach in a real-world system.
 An event-driven library that works with EF Core
 ===============================================
 
-Summary
--------
+Library Summary
+---------------
 
 * This section describes how to use the OurPresence.Core.GenericEventRunner library.
 * OurPresence.Core.GenericEventRunner adds a specific event-driven system to EF Core.
@@ -410,15 +408,15 @@ example of doing that taken from the first article.
 
 .. code-block:: csharp
 
-    private string _county;
-    public decimal County
+    private string _country;
+    public decimal Country
     {
-        get => _county;
+        get => _country;
         private set
         {
-            if (value != _county)
+            if (value != _country)
                 AddEvent(new LocationChangeEvent(value));
-            _county = value;
+            _country = value;
         }
     }
 
